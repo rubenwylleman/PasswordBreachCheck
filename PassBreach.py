@@ -41,7 +41,7 @@ def hashing(string_in):
     hexa_value=hash_obj.hexdigest()
     return hexa_value
   
-
+# main function
 def main():
     check_arguments()
     Value_To_Hash = sys.argv[1]
