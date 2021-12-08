@@ -19,12 +19,9 @@
 # File check features will be implementend in later versions.
 
 
-
-
 import sys
 import hashlib
 import requests
-
 
 # this function will check for any arguments.
 def check_arguments():
