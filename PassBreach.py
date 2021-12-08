@@ -23,6 +23,7 @@
 
 import sys
 import hashlib
+import requests
 
 
 # this function will check for any arguments.
@@ -46,7 +47,26 @@ def main():
     check_arguments()
     Value_To_Hash = sys.argv[1]
     hash_Result=hashing(Value_To_Hash)
-    print(hash_Result)
+    check_hash_to_HIDB(hash_Result)
+
+def check_hash_to_HIDB(hash):
+    HIDB_Response = requests.get('https://api.pwnedpasswords.com/range/' + hash[:5])
+    HIDB_Hitlist = HIDB_Response._content.decode("utf-8")
+    match=0
+    for line in HIDB_Hitlist.split('\r\n'):
+        if line.split(':')[0] == hash[5:].upper():
+            print("oops, we have a match")
+            match=1
+            exit
+
+    if match == 0:
+        print("you are safe!")
+    
+
+    
+    
+
+
 
 if __name__ == "__main__":
     main()
