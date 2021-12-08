@@ -1,4 +1,5 @@
 Changelog
 
 V1.0
-basic functionality of hashing functions. No checking to databases yet.
+basic functionality of hashing functions.
+Check argument string to HIDB database.
