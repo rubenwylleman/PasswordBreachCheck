@@ -5,15 +5,17 @@
 # Author: Ruben Wylleman
 # Creation: 07DEC2021
 
-# Version: 1.0
-# Version date: 07DEC2021
+# Version: 1.1
+# Version date: 28DEC2021
 
 # Functions:
+
 # Main() - main program
 # check_arguments() - check if arguments are present.
 # hashing("str") - converts string to hash1 value.
 # Check_Hash_to_Hidb("hashed_str") - searches the HIBP database for a match
 # help() - Help function
+# Keepass_XML_File_Check("XML") - checks a Keepass generated XML file
 
 # Usage:
 # This script allows the user to check it's passwords safely against known breach databases.
@@ -23,12 +25,14 @@
 # File check features will be implementend in later versions.
 
 # use the option -h for help and usage
+# use the option -i for input XML file
 
 
 import sys
 import hashlib
 import requests
 import getopt
+import xml.etree.ElementTree as etree
 
 # this function will check for any arguments.
 def check_arguments():
@@ -60,14 +64,16 @@ def main(argv):
             help()
             sys.exit()
         elif opt in ("-i","--inputfile"): # if -i selected load argument in inputfile var for later handling
-            inputfile = arg
-            inputfile = "work in progress"
-            print(inputfile)
+            inputfile = open(arg)
+            Keepass_XML_File_check(inputfile)
             sys.exit()
     check_arguments()# check if arguments are entered
     Value_To_Hash = argv[0] # assign entered value to variable
     hash_Result=hashing(Value_To_Hash) # create a hash1 value from the entered argument. and enter result in variable.
-    check_hash_to_HIDB(hash_Result) # check the hash1 value to the databases OF HIBP
+    if check_hash_to_HIDB(hash_Result) == True:
+        print("Oops, this password seems to be compromised.")
+    else:
+        print("you are safe") # check the hash1 value to the databases OF HIBP
 
 
 def check_hash_to_HIDB(hash):
@@ -82,24 +88,47 @@ def check_hash_to_HIDB(hash):
     match=0
     for line in HIDB_Hitlist.split('\r\n'):
         if line.split(':')[0] == hash[5:].upper(): # match our hash, without the first 5 chars, to the list
-            print("oops, we have a match")
             match=1
-            exit
+            return True
 
     if match == 0:
-        print("you are safe!")
+        return False
     
+def Keepass_XML_File_check(file): # This function will go through an Keepass XML file in order to check an entire database.
 
+    tree = etree.parse(file) 
+    root = tree.getroot() #Parse the XML
+    filtered_password = root.findall(".//String[Key='Password']") # filter for the passwords
+    filtered_title = root.findall(".//String[Key='Title']") # Filter for the titles, so we can say which password is breached
+    for item2, item in zip(filtered_title, filtered_password): #iterate both lists at the same time so they would match
+        item2_val = item2.find('Value').text #retrieve the textbases value from the list entry
+        item_val = item.find('Value').text
+        item_hex = hashing(str(item_val)) #hash the password
+        if check_hash_to_HIDB(item_hex) == True: #check the password to HIDB
+            print("PWND!! " + item2_val + " - " + item_val)
+      
     
 def help():
-    multilinehelp = """\nUsage:\n\n
+    multilinehelp = """
+    Usage:
+
     This script allows the user to check it's passwords safely against known breach databases.
     for this first version the 'haveibeenpwnd' API is used to check the password integrity.
     for current version only strings will be processed (read as one password per execution)
     File check features will be implementend in later versions.
     Enter the PassBreach command followed by the password you like to check.
-    \n\nExample:
-    \n\"PassBreach password123\"\n\n
+
+    With the -i option there is the possibility to check an Keepass XML file.
+
+    Options:
+        -h  Help
+        -i  input file (xml keepass)
+
+    Examples:
+    \"passBreach password123\"
+
+    \"passBreach -i [KEEPASS XML]\"
+
     PassBreach -h for help\n"""
     print(multilinehelp)   
 

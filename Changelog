@@ -3,3 +3,6 @@ Changelog
 V1.0
 basic functionality of hashing functions.
 Check argument string to HIDB database.
+
+V1.1
+Added XML functionality for Keepass XML export.
